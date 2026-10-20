@@ -163,15 +163,17 @@ function CharDetailInner() {
             <small>원본</small>
           </div>
           {charAus.map(a => {
-            const av = charWithAu(ch, a.key);   // 이 AU에 넣은 썸네일 (안 넣었으면 색 플레이스홀더, v2.0)
+            /* 이 AU **자신의** 썸네일만 (v2.0 사용자 제보 — 「새 세계관을 만들면 리스트가 기존
+               이미지로 채워져 있다」). charWithAu는 프로필이 아예 없으면 base를 그대로 돌려줘서,
+               미등록 AU가 원본 그림을 빌려 쓰는 것처럼 보였다 — 안 넣었으면 색 플레이스홀더 */
+            const p = ch.auProfiles?.[a.key];
+            const ref = p?.thumbId ?? p?.arts?.[0];
             return (
               <div key={a.key} className={`au-item ${auKey === a.key ? 'on' : ''} ph ${ch.thumbClass}`}
                 style={{ borderColor: auKey === a.key ? 'var(--accent)' : 'var(--line)' }}
                 data-tip={`${a.relName} · ${a.label}`}
                 onClick={() => setAuKey(a.key)}>
-                {(av.thumbId || av.arts?.[0]) && (
-                  <CroppedBlobImg fileRef={av.thumbId ?? av.arts?.[0]} crop={av.thumbCrop} ph={ch.thumbClass} />
-                )}
+                {ref && <CroppedBlobImg fileRef={ref} crop={p?.thumbCrop} ph={ch.thumbClass} />}
                 <small>{a.label}</small>
               </div>
             );
@@ -249,7 +251,9 @@ function CharDetailInner() {
               이름 길이에 따라 어중간해져서, 정한 크기를 그대로 쓴다 (v2.0 사용자 확정) */}
           <div style={{
             fontFamily: familyOf(eff.fontId) ?? 'var(--serif)', fontSize: eff.nameSize ?? 38,
-            fontWeight: 600, letterSpacing: '.2em', lineHeight: 1.1,
+            // 굵기는 끌 수 있다 (v2.0 사용자 요청 — 폰트에 따라 볼드가 안 어울린다). 기본은 지금처럼 굵게
+            fontWeight: (eff.nameBold ?? true) ? 600 : 400,
+            letterSpacing: '.2em', lineHeight: 1.1,
           }}>{eff.name}</div>
           <div className="sub" style={{ marginBottom: 14 }}>{eff.sub}</div>
 
@@ -286,7 +290,7 @@ function CharDetailInner() {
             </>
           ) : (
             <>
-              <h3>{curTab?.title}</h3>
+              <h3 className="tab-tt">{curTab?.title}</h3>
               {curTab?.subtitle && <div className="sub">{curTab.subtitle}</div>}
               <div className="prose" dangerouslySetInnerHTML={{ __html: tabHtml }} />
             </>
